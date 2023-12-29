@@ -14,7 +14,7 @@ Before you begin, ensure you have the following installed:
 
 1. Clone the repository:
 
-   git clone git@github.com:Satyams-23/Login--Oauth.git
+   git clone git@github.com:Satyams-23/Login--Oauth.git 
    Navigate to the project directory:
 
   cd your-repo
