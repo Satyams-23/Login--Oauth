@@ -8,7 +8,7 @@ const app = express();
 
 const CLIENT_ID = '164586149788-0djr21idnpfvhgerc379r9b0ggai3eao.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
-const REDIRECT_URL = 'http://localhost:3000/auth/callback';
+const REDIRECT_URL = 'https://login-oauth.vercel.app/auth/callback';
 
 const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
 
