@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import session from 'express-session';
 import { OAuth2Client } from 'google-auth-library';
 
+
 const app = express();
 
 const CLIENT_ID = '164586149788-0djr21idnpfvhgerc379r9b0ggai3eao.apps.googleusercontent.com';
@@ -26,6 +27,7 @@ app.get('/auth', (req, res) => {
     const authorizeUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: 'https://www.googleapis.com/auth/userinfo.profile',
+
     });
     res.redirect(authorizeUrl);
 });
