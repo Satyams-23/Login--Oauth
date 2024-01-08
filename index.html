@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Example</title>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+      // Handle form submission
+      // Client-side (Browser)
+      const socket = io("http://localhost:3000");
+
+      // Handle real-time updates
+      socket.on("instagramUpdate", (data) => {
+        console.log("Received Instagram update:", data);
+        // Update UI with the new data
+      });
+    </script>
+  </body>
+</html>

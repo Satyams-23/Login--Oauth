@@ -7,9 +7,9 @@ import { OAuth2Client } from 'google-auth-library';
 
 const app = express();
 
-const CLIENT_ID = '164586149788-0djr21idnpfvhgerc379r9b0ggai3eao.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URL = 'http://localhost:3000/auth/callback';
+const CLIENT_ID = '';
+const CLIENT_SECRET = '';
+const REDIRECT_URL = 'http://localhost:8000/auth/google/callback';
 
 const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
 
@@ -23,16 +23,17 @@ app.use(
     })
 );
 
-app.get('/auth', (req, res) => {
+app.get('/auth/google', (req, res) => {
     const authorizeUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: 'https://www.googleapis.com/auth/userinfo.profile',
+        include_granted_scopes: true
 
     });
     res.redirect(authorizeUrl);
 });
 
-app.get('/auth/callback', async (req, res) => {
+app.get('/auth/google/callback', async (req, res) => {
     try {
         const { code } = req.query;
 
@@ -58,7 +59,7 @@ app.get('/auth/callback', async (req, res) => {
 app.get('/profile', async (req, res) => {
     const { tokens } = req.session;
     if (!tokens) {
-        res.redirect('/auth');
+        res.redirect('/auth/google');
         return;
     }
 
@@ -79,7 +80,7 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-const PORT = 3000;
+const PORT = 8000;
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });

@@ -7,8 +7,8 @@ import { google } from 'googleapis';
 const app = express();
 const PORT = 3000;
 
-const CLIENT_ID = '164586149788-0djr21idnpfvhgerc379r9b0ggai3eao.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
+const CLIENT_ID = '';
+const CLIENT_SECRET = '';
 const REDIRECT_URL = 'http://localhost:3000/auth/callback';
 
 const oAuth2Client = new OAuth2Client({
