@@ -1,86 +1,91 @@
-import { google } from 'googleapis';
-import express from 'express';
-import bodyParser from 'body-parser';
-import session from 'express-session';
-import { OAuth2Client } from 'google-auth-library';
-
-
+const express = require('express');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session = require('express-session');
+const cors = require('cors');
 const app = express();
 
-const CLIENT_ID = '';
-const CLIENT_SECRET = '';
-const REDIRECT_URL = 'http://localhost:8000/auth/google/callback';
+app.use(express.json());
 
-const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Express session middleware
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true
+}));
+// Middleware to parse JSON in POST requests
 app.use(
-    session({
-        secret: 'your-secret-key',
-        resave: true,
-        saveUninitialized: true,
-    })
+    cors({
+        origin: 'http://localhost:3000', // Your frontend origin
+        credentials: true,
+    }),
+);
+// Passport configuration
+passport.use(new GoogleStrategy({
+    clientID: '164586149788-rlpoupm2q9r4mfu6ek7af45burv12s98.apps.googleusercontent.com',
+    clientSecret: "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",
+    callbackURL: 'http://localhost:8000/api/v1/auth/google/callback',
+},
+    (accessToken, refreshToken, profile, done) => {
+        // Custom logic to associate the Google profile with the selected role
+        // Save user data to database or perform any necessary actions
+        const user = {
+            id: profile.id,
+            displayName: profile.displayName,
+            role: req.session.role // Assuming you stored the selected role in the session during role selection
+        };
+        console.log('User role:', req.session.role);
+
+        return done(null, user);
+    }));
+
+// Serialize user to store in the session
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+// Deserialize user from the session
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
+// Routes
+
+// ... (previous code)
+
+// Add a new API endpoint to receive the selected role
+app.post('/api/v1/auth/fetchrole', cors(), (req, res) => {
+    const role = req.body;
+
+    // Save the selected role in the session
+    req.session.role = role;
+    console.log('Selected role:', role);
+
+    res.json({ success: true, message: 'Role selected and saved successfully.' });
+});
+
+// ... (remaining code)
+
+app.get('/api/v1//auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-app.get('/auth/google', (req, res) => {
-    const authorizeUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: 'https://www.googleapis.com/auth/userinfo.profile',
-        include_granted_scopes: true
-
-    });
-    res.redirect(authorizeUrl);
-});
-
-app.get('/auth/google/callback', async (req, res) => {
-    try {
-        const { code } = req.query;
-
-        if (!code) {
-            console.error('Authorization Code is missing.');
-            res.status(400).send('Bad Request');
-            return;
-        }
-
-        console.log('Authorization Code:', code);
-        const { tokens } = await oAuth2Client.getToken(code);
-
-        // You can store the tokens in the session or in your database
-        req.session.tokens = tokens;
-
-        res.redirect('/profile');
-    } catch (error) {
-        console.error('Error during token exchange:', error);
-        res.status(500).send('Internal Server Error');
+app.get('/api/v1/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+        // Successful authentication, redirect to the home page or next step
+        res.redirect('api/v1/dashboard');
     }
+);
+
+app.get('/api/v1/dashboard', (req, res) => {
+    // Access user details from req.user
+    const user = req.session.user;
+    res.json({ user });
 });
 
-app.get('/profile', async (req, res) => {
-    const { tokens } = req.session;
-    if (!tokens) {
-        res.redirect('/auth/google');
-        return;
-    }
-
-    oAuth2Client.setCredentials(tokens);
-
-    const oauth2 = google.oauth2({ version: 'v2', auth: oAuth2Client });
-    const { data } = await oauth2.userinfo.get();
-
-    res.send(`
-    <h1>Hello ${data.name}!</h1>
-    <img src="${data.picture}" alt="Profile Picture">
-    <a href="/logout">Logout</a>
-  `);
-});
-
-app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
-
+// Start server
 const PORT = 8000;
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
